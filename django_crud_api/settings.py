@@ -12,7 +12,10 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 
 from pathlib import Path
 import os
+from dotenv import load_dotenv
 
+
+load_dotenv()
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -81,11 +84,11 @@ WSGI_APPLICATION = 'django_crud_api.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'tasksdb',
-        'USER': 'postgres',
-        'PASSWORD': 'seguro12345',
-        'HOST': 'localhost', # 'localhost' por defecto, 'db' en el cluster
-        'PORT': '5432',
+        'NAME': os.environ.get('DB_NAME') ,
+        'USER': os.environ.get('DB_USER'),
+        'PASSWORD': os.environ.get('DB_PASSWORD'),
+        'HOST': os.environ.get('DB_HOST','localhost'), # 'localhost' por defecto, 'db' en el cluster
+        'PORT': os.environ.get("DB_PORT",'5432'),
     }
 }
 
@@ -132,4 +135,11 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 #Cors authorization
-CORS_ALLOWED_ORIGINS = ["http://localhost:5173"]
+cors_origins = os.environ.get('CORS_ALLOWED_ORIGINS', '')
+
+# Si la variable tiene contenido, la dividimos por comas. 
+# Si está vacía, enviamos una lista vacía.
+if cors_origins:
+    CORS_ALLOWED_ORIGINS = [origin.strip() for origin in cors_origins.split(',')]
+else:
+    CORS_ALLOWED_ORIGINS = []
