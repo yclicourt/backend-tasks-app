@@ -1,5 +1,5 @@
 # --- ETAPA 1: Builder ---
-FROM python:3.12-slim AS builder
+FROM registry.local:5443/oficial-images/python:3.12-slim AS builder
 
 # Evita que Python genere archivos .pyc y permite ver logs en tiempo real
 ENV PYTHONDONTWRITEBYTECODE=1
@@ -19,7 +19,7 @@ RUN pip install --upgrade pip && \
 
 
 # --- ETAPA 2: Final ---
-FROM python:3.12-slim
+FROM registry.local:5443/oficial-images/python:3.12-slim
 
 WORKDIR /app
 

@@ -143,3 +143,10 @@ if cors_origins:
     CORS_ALLOWED_ORIGINS = [origin.strip() for origin in cors_origins.split(',')]
 else:
     CORS_ALLOWED_ORIGINS = []
+
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+# Opcional: Si tienes una carpeta de estáticos propia de tu proyecto
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static'),
+]
