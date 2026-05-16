@@ -29,8 +29,12 @@ SECRET_KEY = 'django-insecure-dvgfdz173tpwbga%!)h0vthnt3=3mv*d^dhk3^u#5%k-t%h!dd
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
-
+# Convertimos el string separado por comas en una lista real de Python
+ALLOWED_HOSTS = [
+    host.strip() 
+    for host in os.environ.get("ALLOWED_HOSTS", "").split(",") 
+    if host.strip()
+]
 
 # Application definition
 
@@ -84,11 +88,12 @@ WSGI_APPLICATION = 'django_crud_api.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get('DB_NAME') ,
+        'NAME': os.environ.get('DB_NAME'),
         'USER': os.environ.get('DB_USER'),
         'PASSWORD': os.environ.get('DB_PASSWORD'),
-        'HOST': os.environ.get('DB_HOST','localhost'), # 'localhost' por defecto, 'db' en el cluster
-        'PORT': os.environ.get("DB_PORT",'5432'),
+        # 'localhost' por defecto, 'db' en el cluster
+        'HOST': os.environ.get('DB_HOST', 'localhost'),
+        'PORT': os.environ.get("DB_PORT", '5432'),
     }
 }
 
@@ -134,15 +139,17 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-#Cors authorization
-cors_origins = os.environ.get('CORS_ALLOWED_ORIGINS', '')
 
-# Si la variable tiene contenido, la dividimos por comas. 
-# Si está vacía, enviamos una lista vacía.
-if cors_origins:
-    CORS_ALLOWED_ORIGINS = [origin.strip() for origin in cors_origins.split(',')]
-else:
-    CORS_ALLOWED_ORIGINS = []
+# Cors authorization
+CORS_ALLOWED_ORIGINS = [
+    origin.strip() 
+    for origin in os.environ.get("CORS_ALLOWED_ORIGINS", "").split(",") 
+    if origin.strip()
+]
+
+
+# Handle security forms
+CSRF_TRUSTED_ORIGINS = [origin for origin in CORS_ALLOWED_ORIGINS]
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
@@ -150,3 +157,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static'),
 ]
+
+# Django listen traefik
+USE_X_FORWARDED_HOST = True
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')

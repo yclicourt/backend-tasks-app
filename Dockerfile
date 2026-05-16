@@ -35,7 +35,12 @@ COPY . .
 # Asegúrate de tener STATIC_ROOT configurado en settings.py
 RUN python manage.py collectstatic --noinput
 
-RUN adduser --disabled-password --no-create-home admbas
+RUN adduser --disabled-password admbas
+
+RUN chown -R admbas:admbas /app /home/admbas
+
+RUN mkdir -p /app/staticfiles && chown -R admbas:admbas /app/staticfiles
+
 USER admbas
 
 EXPOSE 8000
@@ -44,4 +49,4 @@ EXPOSE 8000
 # --bind: dirección y puerto
 # --workers: número de procesos (regla general: 2 * núcleos + 1)
 # backend.wsgi: reemplaza 'backend' por el nombre de tu carpeta de proyecto
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "3", "backend.wsgi:application"]
+CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--timeout","90" ,"--workers", "2", "django_crud_api.wsgi:application"]
