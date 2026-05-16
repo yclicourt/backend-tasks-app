@@ -24,10 +24,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-dvgfdz173tpwbga%!)h0vthnt3=3mv*d^dhk3^u#5%k-t%h!dd'
+SECRET_KEY = os.environ.get("SECRET_KEY","")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get("DEBUG","False").lower() in ("true", "1", "t")
 
 # Convertimos el string separado por comas en una lista real de Python
 ALLOWED_HOSTS = [
@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'tasks',
     'rest_framework',
+    'drf_yasg',
     'corsheaders',
 ]
 
