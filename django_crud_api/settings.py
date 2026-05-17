@@ -24,15 +24,15 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get("SECRET_KEY","")
+SECRET_KEY = os.environ.get("SECRET_KEY", "")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get("DEBUG","False").lower() in ("true", "1", "t")
+DEBUG = os.environ.get("DEBUG", "False").lower() in ("true", "1", "t")
 
 # Convertimos el string separado por comas en una lista real de Python
 ALLOWED_HOSTS = [
-    host.strip() 
-    for host in os.environ.get("ALLOWED_HOSTS", "").split(",") 
+    host.strip()
+    for host in os.environ.get("ALLOWED_HOSTS", "").split(",")
     if host.strip()
 ]
 
@@ -53,6 +53,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -143,8 +144,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Cors authorization
 CORS_ALLOWED_ORIGINS = [
-    origin.strip() 
-    for origin in os.environ.get("CORS_ALLOWED_ORIGINS", "").split(",") 
+    origin.strip()
+    for origin in os.environ.get("CORS_ALLOWED_ORIGINS", "").split(",")
     if origin.strip()
 ]
 
@@ -152,12 +153,10 @@ CORS_ALLOWED_ORIGINS = [
 # Handle security forms
 CSRF_TRUSTED_ORIGINS = [origin for origin in CORS_ALLOWED_ORIGINS]
 
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-
-# Opcional: Si tienes una carpeta de estáticos propia de tu proyecto
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'static'),
-]
+STATIC_URL = 'static/'
+if not DEBUG:    
+    STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Django listen traefik
 USE_X_FORWARDED_HOST = True
