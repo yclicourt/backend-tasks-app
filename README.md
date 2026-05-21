@@ -11,6 +11,7 @@ API REST para la aplicación de tareas, construida con **Django** y **Django RES
 * Django & Django REST Framework
 * PostgreSQL
 * Docker,Docker Compose
+* Swagger
 
 
 ## 🚀 Configuración en Local
@@ -75,3 +76,11 @@ Sigue estos pasos para levantar el entorno de desarrollo:
      docker build -t harbor.local:backend-tasks-app/backend-tasks-app:latest .
      docker push harbor.local:backend-tasks-app/backend-tasks-app:latest
    ```
+8. **Para ver la documentacion del backend**
+   ```bash
+     http://api-tasks.local/swagger/
+     http://api-tasks.local/redoc/
+     
+   ```
+   ![Documentacion con Swagger](./assets/swagger.png)
+   
