@@ -1,4 +1,4 @@
-# ⚙️ TodoApp - Backend API
+# ⚙️ TaskApp - Backend API
 
 API REST para la aplicación de tareas, construida con **Django** y **Django REST Framework (DRF)**.
 
