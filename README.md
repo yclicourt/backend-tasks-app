@@ -10,6 +10,7 @@ API REST para la aplicación de tareas, construida con **Django** y **Django RES
 * Python
 * Django & Django REST Framework
 * PostgreSQL
+* Docker,Docker Compose
 
 
 ## 🚀 Configuración en Local
@@ -19,8 +20,8 @@ Sigue estos pasos para levantar el entorno de desarrollo:
 1. **Clona el repositorio:**
 
    ```bash
-    git clone https://github.com/yclicourt/ecommerce-frontend.git
-    cd ecommerce-frontend
+    git clone https://github.com/yclicourt/backend-tasks-app.git
+    cd backend-tasks-app
    ```
 
 2. **Crear y activar el entorno virtual**:
@@ -57,4 +58,20 @@ Sigue estos pasos para levantar el entorno de desarrollo:
     ```bash
      python manage.py migrate
      python manage.py runserver
+   ```
+6. **Ejecutar docker compose para levantar la base de datos o bien puede usar una base de datos con otro gestor**
+   ```bash
+     docker compose up -d
+   ```
+7. **Para crear la imagen docker**
+   - Si se esta usando registry oficial(Docker Hub)
+   
+   ```bash
+     docker build -t user/project:tag .
+   ```
+
+   - Si se esta usando un registry local(Harbor,Nexus)
+   ```bash
+     docker build -t harbor.local:backend-tasks-app/backend-tasks-app:latest .
+     docker push harbor.local:backend-tasks-app/backend-tasks-app:latest
    ```
