@@ -1,0 +1,126 @@
+stages:
+  - lint
+  - test
+  # - security-sast
+  - build
+  - security-scan
+  - deploy
+
+variables:
+  IMAGE_NAME: $REGISTRY/$REGISTRY_PROJECT/backend-django-tasks
+  IMAGE_TAG: $CI_COMMIT_SHORT_SHA
+  TRIVY_CACHE_DIR: ".trivycache/"
+
+
+# 1. ETAPA DE LINTING: Verificación de estilo de código
+linting:
+  stage: lint
+  image: $REGISTRY/oficial-images/python:3.12-slim
+  script:
+    - pip install flake8
+    - flake8 . --exclude=*.venv*,*migrations*
+
+# 2. ETAPA DE TEST: Testing del backend con base de datos de testing
+django_tests:
+  stage: test
+  image: $REGISTRY/oficial-images/python:3.12-slim
+  services:
+    - name: $REGISTRY/oficial-images/postgres:alpine
+      alias: db
+  variables:
+    POSTGRES_DB: $POSTGRES_DB
+    POSTGRES_USER: $POSTGRES_USER
+    POSTGRES_PASSWORD: $POSTGRES_PASSWORD
+    DATABASE_URL: "postgres://$POSTGRES_USER:$POSTGRES_PASSWORD@db:5432/$POSTGRES_DB"
+  script:
+    - pip install -r requirements.txt
+    - python manage.py test
+
+
+# 3. ETAPA DE SCAN_CODE: Análisis de código estático con SonarQube (SAST)
+# sonarqube_scan:
+#   stage: security-sast
+#   image: 
+#     name: sonarsource/sonar-scanner-cli:latest
+#     entrypoint: [""]
+#   cache:
+#     key: "${CI_JOB_NAME}"
+#     paths:
+#       - .sonar/cache
+#   script:
+#     - sonar-scanner \
+#         -Dsonar.host.url="${SONAR_HOST_URL}" \
+#         -Dsonar.token="${SONAR_TOKEN}" \
+#         -Dsonar.projectKey="django-backend" \
+#         -Dsonar.sources=. \
+#         -Dsonar.exclusions="**/migrations/**,**/.venv/**,**/tests/**" \
+#         -Dsonar.python.version=3.12
+
+
+# 4. ETAPA DE BUILD: Usando la imagen oficial de Podman
+build_with_podman:
+  stage: build
+  image: quay.io/podman/stable:latest
+  script:
+    # 1. Login en Harbor (Podman usará los certificados montados por tu Runner)
+    - echo "$REGISTRY_PASS" | podman login $REGISTRY -u "$REGISTRY_USER" --password-stdin
+
+    - podman pull $IMAGE_NAME:latest || true
+    # 2. Build de la imagen
+    - podman build 
+        --tls-verify=true 
+        --cache-from $IMAGE_NAME
+        -t $IMAGE_NAME:$IMAGE_TAG 
+        -t $IMAGE_NAME:latest 
+        -f Dockerfile .
+
+    # 3. Push a Harbor
+    - podman tag $IMAGE_NAME:$IMAGE_TAG $IMAGE_NAME:latest
+    - podman push $IMAGE_NAME:latest
+
+
+# 5. ETAPA_SCAN_IMAGE: Escaneo de la imagen Docker con Trivy
+trivy_image_scan:
+  stage: security-scan
+  image:
+    name: aquasec/trivy:latest
+    entrypoint: [""]
+  cache:
+    key: "${CI_JOB_NAME}"
+    paths:
+      - .trivycache/
+  script:
+    # 1. Autenticar Trivy en tu Harbor privado para que pueda descargar la imagen
+    - export TRIVY_USERNAME="$REGISTRY_USER"
+    - export TRIVY_PASSWORD="$REGISTRY_PASS"
+    
+    # 2. Descargar o actualizar la base de datos de vulnerabilidades (Trivy lo hace solo)
+    # 3. Escanear la imagen. --exit-code 1 hará que el pipeline falle si encuentra vulnerabilidades CRITICAL
+    - trivy image \
+        --tls-verify=true \
+        --exit-code 1 \
+        --severity HIGH,CRITICAL \
+        "$IMAGE_NAME:$IMAGE_TAG"
+ 
+
+# 6. ETAPA DE DEPLOY: Modifica el TERCER repositorio (Infraestructura)
+trigger_gitops_deploy:
+  stage: deploy
+  image: mikefarah/yq:latest # Imagen oficial de yq para editar YAML de forma segura
+  script:
+    # Configurar credenciales de Git del bot
+    - git config --global user.email "yclicourt@gmail.com"
+    - git config --global user.name "yoadev"
+    
+    # Clonar el repositorio donde tienes tu Helm Chart (my-stack)
+    - git clone https://oauth2:$GITLAB_TOKEN@$REPO_CODE
+    - cd tasks-k3s-argocd/my-stack
+    
+    # Modificar el tag del backend en el values.yaml usando yq
+    # Expresión: actualiza la propiedad .backend.tag con el valor del SHA corto de Git
+    - yq -i ".backend_tasks_app.tag = \"${IMAGE_TAG}\"" values.yaml
+    
+    # Confirmar cambios y subirlos para que ArgoCD reaccione
+    - git add values.yaml
+    - git commit -m "chore(deploy):update django-backend helm tag to ${IMAGE_TAG} [skip ci]"
+    - git push origin main
