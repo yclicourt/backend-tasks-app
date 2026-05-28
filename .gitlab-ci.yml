@@ -10,6 +10,14 @@ variables:
   IMAGE_NAME: $REGISTRY/$REGISTRY_PROJECT/backend-django-tasks
   IMAGE_TAG: $CI_COMMIT_SHORT_SHA
   TRIVY_CACHE_DIR: ".trivycache/"
+  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+
+cache:
+  key:
+    files:
+      - backend/requirements.txt # La caché solo se invalida si cambia este archivo
+  paths:
+    - .cache/pip/
 
 
 # 1. ETAPA DE LINTING: Verificación de estilo de código
@@ -34,7 +42,7 @@ django_tests:
     DATABASE_URL: "postgres://$POSTGRES_USER:$POSTGRES_PASSWORD@db:5432/$POSTGRES_DB"
   script:
     - pip install -r requirements.txt
-    - python manage.py test
+    - pytest
 
 
 # 3. ETAPA DE SCAN_CODE: Análisis de código estático con SonarQube (SAST)
@@ -67,15 +75,15 @@ build_with_podman:
 
     - podman pull $IMAGE_NAME:latest || true
     # 2. Build de la imagen
-    - podman build 
-        --tls-verify=true 
-        --cache-from $IMAGE_NAME
-        -t $IMAGE_NAME:$IMAGE_TAG 
-        -t $IMAGE_NAME:latest 
+    - podman build \
+        --tls-verify=true \
+        --cache-from $IMAGE_NAME \
+        -t $IMAGE_NAME:$IMAGE_TAG \
+        -t $IMAGE_NAME:latest \
         -f Dockerfile .
 
     # 3. Push a Harbor
-    - podman tag $IMAGE_NAME:$IMAGE_TAG $IMAGE_NAME:latest
+    - podman push $IMAGE_NAME:$IMAGE_TAG
     - podman push $IMAGE_NAME:latest
 
 
@@ -97,7 +105,7 @@ trivy_image_scan:
     # 2. Descargar o actualizar la base de datos de vulnerabilidades (Trivy lo hace solo)
     # 3. Escanear la imagen. --exit-code 1 hará que el pipeline falle si encuentra vulnerabilidades CRITICAL
     - trivy image \
-        --tls-verify=true \
+        --cacert /etc/containers/certs.d/registry.local:5443/ca.crt \
         --exit-code 1 \
         --severity HIGH,CRITICAL \
         "$IMAGE_NAME:$IMAGE_TAG"
