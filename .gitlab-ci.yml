@@ -42,7 +42,7 @@ django_tests:
     DATABASE_URL: "postgres://$POSTGRES_USER:$POSTGRES_PASSWORD@db:5432/$POSTGRES_DB"
   script:
     - pip install -r requirements.txt
-    - pytest
+    - python manage.py test
 
 
 # 3. ETAPA DE SCAN_CODE: Análisis de código estático con SonarQube (SAST)
