@@ -83,7 +83,7 @@ build_with_podman:
 trivy_image_scan:
   stage: security-scan
   image:
-    name: registry.local:5443/oficial-images/mikefarah/yq:latest
+    name: registry.local:5443/oficial-images/aquasec/trivy:latest
     entrypoint: [""]
   cache:
     key: "${CI_JOB_NAME}"
