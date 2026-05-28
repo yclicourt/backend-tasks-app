@@ -60,7 +60,7 @@ django_tests:
 # 4. ETAPA DE BUILD: Usando la imagen oficial de Podman
 build_with_podman:
   stage: build
-  image: quay.io/podman/stable:latest
+  image: registry.local:5443/oficial-images/quay.io/podman/stable:latest
   script:
     # 1. Login en Harbor (Podman usará los certificados montados por tu Runner)
     - echo "$REGISTRY_PASS" | podman login $REGISTRY -u "$REGISTRY_USER" --password-stdin
@@ -83,7 +83,7 @@ build_with_podman:
 trivy_image_scan:
   stage: security-scan
   image:
-    name: aquasec/trivy:latest
+    name: registry.local:5443/oficial-images/mikefarah/yq:latest
     entrypoint: [""]
   cache:
     key: "${CI_JOB_NAME}"
@@ -106,7 +106,7 @@ trivy_image_scan:
 # 6. ETAPA DE DEPLOY: Modifica el TERCER repositorio (Infraestructura)
 trigger_gitops_deploy:
   stage: deploy
-  image: mikefarah/yq:latest # Imagen oficial de yq para editar YAML de forma segura
+  image: registry.local:5443/oficial-images/mikefarah/yq:latest # Imagen oficial de yq para editar YAML de forma segura
   script:
     # Configurar credenciales de Git del bot
     - git config --global user.email "yclicourt@gmail.com"
