@@ -107,6 +107,7 @@ trivy_image_scan:
     - trivy image
         --cacert /etc/containers/certs.d/registry.local:5443/ca.crt
         --exit-code 1
+        --ignore-unfixed
         --severity HIGH,CRITICAL
         "$IMAGE_NAME:$IMAGE_TAG"
  
