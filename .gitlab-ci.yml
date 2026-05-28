@@ -75,11 +75,11 @@ build_with_podman:
 
     - podman pull $IMAGE_NAME:latest || true
     # 2. Build de la imagen
-    - podman build \
-        --tls-verify=true \
-        --cache-from $IMAGE_NAME \
-        -t $IMAGE_NAME:$IMAGE_TAG \
-        -t $IMAGE_NAME:latest \
+    - podman build 
+        --tls-verify=true 
+        --cache-from $IMAGE_NAME 
+        -t $IMAGE_NAME:$IMAGE_TAG 
+        -t $IMAGE_NAME:latest 
         -f Dockerfile .
 
     # 3. Push a Harbor
