@@ -119,6 +119,8 @@ trigger_gitops_deploy:
   script:
 
     - apk add --no-cache git yq
+
+    - git config --global http.sslCAInfo /etc/containers/certs.d/registry.local:5443/ca.crt
     # Configurar credenciales de Git del bot
     - git config --global user.email "yclicourt@gmail.com"
     - git config --global user.name "yoadev"
