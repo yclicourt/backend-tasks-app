@@ -115,8 +115,10 @@ trivy_image_scan:
 # 6. ETAPA DE DEPLOY: Modifica el TERCER repositorio (Infraestructura)
 trigger_gitops_deploy:
   stage: deploy
-  image: registry.local:5443/oficial-images/mikefarah/yq:latest # Imagen oficial de yq para editar YAML de forma segura
+  image: registry.local:5443/oficial-images/alpine:latest # Imagen oficial de yq para editar YAML de forma segura
   script:
+
+    - apk add --no-cache git yq
     # Configurar credenciales de Git del bot
     - git config --global user.email "yclicourt@gmail.com"
     - git config --global user.name "yoadev"
