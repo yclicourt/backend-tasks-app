@@ -49,7 +49,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "drf_yasg",
     "corsheaders",
-    "django_extensions"
+    "django_extensions",
 ]
 
 MIDDLEWARE = [
@@ -100,10 +100,10 @@ DATABASES = {
     }
 }
 
-if 'pytest' in sys.argv[0] or 'test' in sys.argv:
-    DATABASES['default'] = {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': ':memory:',
+if "pytest" in sys.argv[0] or "test" in sys.argv:
+    DATABASES["default"] = {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": ":memory:",
     }
 
 # Password validation
