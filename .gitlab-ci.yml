@@ -104,10 +104,10 @@ trivy_image_scan:
     
     # 2. Descargar o actualizar la base de datos de vulnerabilidades (Trivy lo hace solo)
     # 3. Escanear la imagen. --exit-code 1 hará que el pipeline falle si encuentra vulnerabilidades CRITICAL
-    - trivy image \
-        --cacert /etc/containers/certs.d/registry.local:5443/ca.crt \
-        --exit-code 1 \
-        --severity HIGH,CRITICAL \
+    - trivy image
+        --cacert /etc/containers/certs.d/registry.local:5443/ca.crt
+        --exit-code 1
+        --severity HIGH,CRITICAL
         "$IMAGE_NAME:$IMAGE_TAG"
  
 
