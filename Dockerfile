@@ -6,9 +6,12 @@ ENV PYTHONUNBUFFERED=1
 
 WORKDIR /app
 
-# Caché para los paquetes de desarrollo
-RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
-    --mount=type=cache,target=/var/lib/apt/lists,sharing=locked \
+# 🔥 OPTIMIZACIÓN ETAPA 1: Forzar a APT a mantener los paquetes en la caché del Builder
+RUN rm -f /etc/apt/apt.conf.d/docker-clean; \
+    echo 'Binary::apt::APT::Keep-Downloaded-Packages "true";' > /etc/apt/apt.conf.d/keep-cache
+
+RUN --mount=type=cache,target=/var/cache/apt,sharing=shared \
+    --mount=type=cache,target=/var/lib/apt/lists,sharing=shared \
     apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     libpq-dev
@@ -27,15 +30,20 @@ FROM registry.local:5443/oficial-images/python:3.12-slim
 
 WORKDIR /app
 
-# Caché para las librerías de ejecución en producción
-RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
-    --mount=type=cache,target=/var/lib/apt/lists,sharing=locked \
+# 🔥 OPTIMIZACIÓN ETAPA 2: Forzar a APT a mantener los paquetes en la caché de la imagen Final
+RUN rm -f /etc/apt/apt.conf.d/docker-clean; \
+    echo 'Binary::apt::APT::Keep-Downloaded-Packages "true";' > /etc/apt/apt.conf.d/keep-cache
+
+# Aquí se ejecuta el update, el upgrade (para parchar Trivy) y la instalación de libpq5
+RUN --mount=type=cache,target=/var/cache/apt,sharing=shared \
+    --mount=type=cache,target=/var/lib/apt/lists,sharing=shared \
     apt-get update && apt-get upgrade -y && apt-get install -y --no-install-recommends \
     libpq5
 
 # Copiamos las librerías limpias desde el builder
 COPY --from=builder /install /usr/local
 
+# Configuración de seguridad y estructura de directorios
 RUN adduser --disabled-password --gecos "" admbas && \
     mkdir -p /app/staticfiles && \
     chown -R admbas:admbas /app
